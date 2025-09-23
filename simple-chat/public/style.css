@@ -5,7 +5,7 @@ body{
 
 .main-wrapper{
     width:100%;
-    height:100vh; /*viewheight*/
+    height:100dvh; /*viewheight*/
     background-color: bisque;
     display: flex;
     flex-direction: column;
@@ -30,9 +30,12 @@ body{
     list-style: none;
     /* margin:0; */
     padding:10px;
+    padding-bottom: calc(72px + env(safe-area-inset-bottom));
 
     /* outline: 1px black dotted; */
-    overflow: scroll;
+    overflow: auto;
+    scroll-behavior: smooth;
+    -webkit-overflow-scrolling: touch;
 
     
 }
@@ -41,6 +44,35 @@ body{
     margin-top: 5px;
     padding: 5px 2px;
     /* display: inline-block; */
+}
+.msg.denny .words{
+    background: linear-gradient(90deg, #22c55e, #fde047);
+    color:#033;
+}
+.msg.stacie .words{
+    background: linear-gradient(90deg, #ef4444, #3b82f6);
+    color:#fff;
+}
+.msg.other .words{
+    background: #fff;
+}
+
+/* pixel art container */
+.pixel-art{
+    --size: 8px;
+    --cols: 12;
+    display: grid;
+    grid-template-columns: repeat(var(--cols), var(--size));
+    gap: 1px;
+    margin-top: 6px;
+}
+.pixel-art .px{
+    width: var(--size);
+    height: var(--size);
+    background: transparent;
+}
+.pixel-art .px.on{
+    background: #111;
 }
 .who{
     background-color: rgb(155, 197, 252);
@@ -54,9 +86,7 @@ body{
 }
 
 
-#threadWrapper li:nth-child(even){
-    background-color: rgb(147, 255, 237);
-}
+/* remove alternating backgrounds to keep bubbles clean */
 /* .words{
     background-color: blanchedalmond;
 } */
