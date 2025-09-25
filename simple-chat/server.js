@@ -4,8 +4,8 @@ const https = require("https");
 const fs = require("fs");
 
 const app = express();
-const portHTTP = 3000;
-const portHTTPS = 3001;
+const portHTTP = 4280;
+const portHTTPS = 4281;
 
 // returning to the client anything that is
 // inside the public folder
@@ -26,13 +26,33 @@ const io = new Server(HTTPserver);
 io.on('connection', (socket) => {
     console.log('a user connected', socket.id);
 
+    // user joins with a name
+    socket.on("user:join", function(name){
+        socket.data.username = (name || "Anonymous");
+        io.emit("system", `${socket.data.username} has entered, it's time to chat :)`);
+    });
+
     socket.on("message", function(incomingMessage){
         console.log("got a msg", incomingMessage)
         // broadcast to everyone including sender
         io.emit("message", incomingMessage)
     })
+
+    // font change start/stop for a message id
+    socket.on("font:start", function(payload){
+        io.emit("font:start", payload);
+    });
+    socket.on("font:stop", function(payload){
+        io.emit("font:stop", payload);
+    });
+
     socket.on("disconnect", function(){
         console.log("someone disconnected", socket.id)
+        if (socket.data && socket.data.username){
+            io.emit("system", `${socket.data.username} has left the chat, prob got some work to do`);
+        } else {
+            io.emit("system", `A user has left the chat`);
+        }
     })
 })
 
@@ -59,9 +79,22 @@ try{
         const ioHttps = new Server(HTTPSserver);
         ioHttps.on('connection', (socket) => {
             console.log('[HTTPS] a user connected', socket.id);
+            socket.on("user:join", function(name){
+                socket.data.username = (name || "Anonymous");
+                ioHttps.emit("system", `${socket.data.username} has entered, it's time to chat`);
+            });
             socket.on("message", (incomingMessage) => {
                 ioHttps.emit("message", incomingMessage);
             });
+            socket.on("font:start", function(payload){ ioHttps.emit("font:start", payload); });
+            socket.on("font:stop", function(payload){ ioHttps.emit("font:stop", payload); });
+            socket.on("disconnect", function(){
+                if (socket.data && socket.data.username){
+                    ioHttps.emit("system", `${socket.data.username} has left the chat, prob got some work to do`);
+                } else {
+                    ioHttps.emit("system", `A user has left the chat`);
+                }
+            })
         });
         HTTPSserver.listen(portHTTPS, function(){
             console.log("HTTPS Server started at port", portHTTPS);
