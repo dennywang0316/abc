@@ -4,8 +4,7 @@ const https = require("https");
 const fs = require("fs");
 
 const app = express();
-const portHTTP = 4280;
-const portHTTPS = 4281;
+const portHTTPS = 4280;
 
 // returning to the client anything that is
 // inside the public folder
@@ -56,10 +55,6 @@ io.on('connection', (socket) => {
     })
 })
 
-// Start HTTP server
-HTTPserver.listen(portHTTP, function(){
-    console.log("HTTP Server started at port", portHTTP);
-});
 
 // Try to additionally start HTTPS if certs exist
 try{
