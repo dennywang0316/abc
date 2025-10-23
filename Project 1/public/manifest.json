@@ -1,0 +1,12 @@
+{
+  "name": "Bubble Connect",
+  "icons": [
+    {
+      "src": "assets/bubble.jpg",
+      "type": "image/jpg",
+      "sizes": "512x512"
+    }
+  ],
+  "orientation": "Natural",
+  "display": "standalone"
+}

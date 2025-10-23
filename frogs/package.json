@@ -1,16 +1,15 @@
 {
-  "name": "htmlday",
+  "name": "simple-chat-in-class",
   "version": "1.0.0",
+  "description": "",
   "main": "script.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "",
   "license": "ISC",
-  "description": "",
   "dependencies": {
-    "body-parser": "^2.2.0",
     "express": "^5.1.0",
-    "socket.io": "^4.7.5"
+    "socket.io": "^4.8.1"
   }
 }

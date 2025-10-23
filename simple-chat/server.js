@@ -56,7 +56,7 @@ io.on('connection', (socket) => {
 })
 
 
-// Try to additionally start HTTPS if certs exist
+// Try to start HTTPS if certs exist
 try{
     const possiblePaths = [
         { key: "keys-for-local-https/localhost-key.pem", cert: "keys-for-local-https/localhost.pem" },
