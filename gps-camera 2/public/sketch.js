@@ -295,6 +295,10 @@ function drawAllTraces(traces) {
 
 //directly called from GPS listener whenever our location updates;
 function handleNewPosition(pos) {
+  if(pos.coords.accuracy > 10){
+    console.log("got position , but acuracy is ", pos.coords.accuracy, " wont map");
+    return
+  }
   // fix location for chinese map tiles
   let lonlat = fixForChineseMap(pos);
   currentLongitude = lonlat[0];
