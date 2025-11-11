@@ -6,6 +6,7 @@ let GPS_options = {
   };
 
 function requestGPS() {
+   userStartAudio();
   navigator.permissions.query({ name: "geolocation" }).then((result) => {
     if (result.state === "granted") {
       report(result.state);

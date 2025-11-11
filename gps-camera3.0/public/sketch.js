@@ -17,6 +17,8 @@ let traces = [[]];
 let amSurveilled = false;
 let othersTraces = {};
 
+let noise;
+
 if (location.hostname.toLowerCase().startsWith('browsercircus') || location.hostname.toLowerCase().startsWith('www')) {
   socket = io({ path: "/denny/port-4280/socket.io" });  // yields '/leon/port-4100/socket.io' or '/socket.io'
 } else {
@@ -63,17 +65,23 @@ function setup() {
       }
     });
   }
-  me = new MyPoint();
-  socket.emit("new-user", me.col.levels)
-  socket.on("users-update", data => {
-  for (let id in data) {
-    if (!others[id]) {
-      others[id] = new MyPoint();
-    }
-    others[id].col = color(data[id].color); 
-  }
-}); 
-    
+
+  noise = new p5.Noise('white');
+  noise.amp(0);
+  noise.start();
+
+  me = new MyPoint(color(170, 240, 255));
+
+  //   socket.emit("new-user", me.col.levels)
+  //   socket.on("users-update", data => {
+  //   for (let id in data) {
+  //     if (!others[id]) {
+  //       others[id] = new MyPoint(color(200));
+  //     }
+  //     // others[id].col = color(data[id].color); 
+  //   }
+  // }); 
+
 
 
   //load the json file
@@ -121,7 +129,35 @@ function draw() {
 
     }
 
-   //camera logos
+    //numCameras is set to 0 in every loop
+    let numCameras = 0;
+
+    //lines
+    for (let i = 0; i < camerasCenter.length; i++) {
+      let c = camerasCenter[i];
+      let d = getDistanceFromLatLonInM(me.lat, me.lng, c.lat, c.lng);
+
+      // let camPos = myMap.latLngToPixel(c.lat, c.lng);
+      fill(255);
+      //text(round(d), camPos.x, camPos.y);
+      if (d < 30) {
+        stroke(150, 7, 7);
+        strokeWeight(1.5);
+        if (me.x < c.x) {
+          line(me.x, me.y, c.x - 12, c.y);
+        } else {
+          line(me.x, me.y, c.x + 12, c.y);
+        }
+        //number of cameras in each loop
+        numCameras++;
+      }
+
+    }
+
+    let volume = map(numCameras, 0, 5, 0, 1, true); 
+    noise.amp(volume, 0.2); 
+
+    //camera logos
     for (let i = 0; i < camerasLocation.length; i++) {
 
       let c = camerasLocation[i];
@@ -137,9 +173,10 @@ function draw() {
       push();
       let pupilX = moveeye.x;
       let pupilY = moveeye.y;
+      //d<30: eyes looking towards the user
       if (d < 30) {
         stroke(0);
-        fill(150,7,7);
+        fill(150, 7, 7);
         curve(camPos.x - 5, camPos.y - 60, camPos.x - 12, camPos.y, camPos.x + 12, camPos.y, camPos.x + 5, camPos.y - 50);
         curve(camPos.x - 5, camPos.y + 60, camPos.x - 12, camPos.y, camPos.x + 12, camPos.y, camPos.x + 5, camPos.y + 50);
         fill(0);
@@ -149,7 +186,8 @@ function draw() {
         fill(180);
         circle(pupilX + 1, pupilY + 1, 3);
       } else {
-        stroke(100,7,7);
+        //eyes turn gray
+        stroke(100, 7, 7);
         strokeWeight(0.8);
         fill(230);
         curve(camPos.x - 5, camPos.y - 60, camPos.x - 12, camPos.y, camPos.x + 12, camPos.y, camPos.x + 5, camPos.y - 50);
@@ -165,30 +203,7 @@ function draw() {
 
     }
 
-    //numCameras is set to 0 in every loop
-    let numCameras = 0;
 
-    //lines
-    for (let i = 0; i < camerasCenter.length; i++) {
-      let c = camerasCenter[i];
-      let d = getDistanceFromLatLonInM(me.lat, me.lng, c.lat, c.lng);
-
-      // let camPos = myMap.latLngToPixel(c.lat, c.lng);
-      fill(255);
-      //text(round(d), camPos.x, camPos.y);
-      if (d < 30) {
-        stroke(170, 240, 255, 150);
-        strokeWeight(1);
-        if (me.x < c.x) {
-          line(me.x, me.y, c.x-12, c.y);
-        } else {
-          line(me.x, me.y, c.x+12, c.y);
-        }
-        //number of cameras in each loop
-        numCameras++;
-      }
-
-    }
 
 
     if (numCameras > 5) {
@@ -210,32 +225,32 @@ function draw() {
     let firstColor = 155;
     let pupilR = 50;
     let eyeSize = 100;
-    firstColor = map(sin(frameCount*0.08), -1, 1, 100, 255);
+    firstColor = map(sin(frameCount * 0.08), -1, 1, 100, 255);
     pupilR = map(numCameras, 1, 20, 50, 150);
     eyeSize = map(numCameras, 1, 20, 100, 480);
     stroke(0);
     fill(firstColor, 7, 7);
-    curve(width/2 - 5, -30 - eyeSize, width/2 - 80, 70, width/2 + 80, 70, width/2 + 5, -30 - eyeSize);
-    curve(width/2 - 5, eyeSize + 170, width/2 - 80, 70, width/2 + 80, 70, width/2 + 5, eyeSize + 170);
+    curve(width / 2 - 5, -30 - eyeSize, width / 2 - 80, 70, width / 2 + 80, 70, width / 2 + 5, -30 - eyeSize);
+    curve(width / 2 - 5, eyeSize + 170, width / 2 - 80, 70, width / 2 + 80, 70, width / 2 + 5, eyeSize + 170);
     fill(0);
     noStroke();
-    circle(width/2, 70, pupilR);
+    circle(width / 2, 70, pupilR);
     fill(255);
     textSize(40);
-    
+
     if (numCameras < 10) {
-      text(numCameras, width/2-12, 83)
+      text(numCameras, width / 2 - 12, 83)
     } else {
-      text(numCameras, width/2-25, 83)
+      text(numCameras, width / 2 - 25, 83)
     }
 
-      if (numCameras < 9) {
-        traceTran = 120;
-      } else if (numCameras < 13) {
-        traceTran = 180;
-      } else {
-        traceTran = 255;
-      }
+    if (numCameras < 9) {
+      traceTran = 120;
+    } else if (numCameras < 13) {
+      traceTran = 180;
+    } else {
+      traceTran = 255;
+    }
 
 
     // let meCoords = myMap.pixelToLatLng(mouseX, mouseY);
@@ -257,7 +272,7 @@ function draw() {
     me.update();
     me.display();
 
-    drawAllTraces(traces);
+    drawAllTraces(traces, color(170, 240, 255, traceTran));
     // console.log(me)
 
   }
@@ -300,7 +315,7 @@ function windowResized() {
   resizeCanvas(windowWidth, windowHeight);
 }
 
-function drawtraces(traces) {
+function drawtraces(traces, myTraceColor) {
 
   // lines connected:
   // for(let i = 1; i < traces.length; i++){
@@ -314,7 +329,7 @@ function drawtraces(traces) {
 
   //curveVertex
   if (traces.length == 0) return;
-  stroke(170, 240, 255, traceTran);
+  stroke(myTraceColor || color(220, traceTran));
   beginShape();
   // control point
   let p = traces[0];
@@ -504,6 +519,7 @@ socket.on("traces-from-server", (data) => {
 // })
 
 socket.on("location-from-server", function (data) {
+  if (!mapInit || !myMap) return;
   console.log("other location", data);
   // let othersPosOnCanvas = myMap.latLngToPixel(data.lat, data.lng);
   // others.goalX = othersPosOnCanvas.x;
@@ -545,28 +561,29 @@ function updateMapContent() {
 let colorArray = [];
 let col;
 class MyPoint {
-  constructor() {
+  constructor(col) {
     this.x = 0;
     this.y = 0;
     this.goalX = 0;
     this.goalY = 0;
     this.size = 14;
-    this.colorArray = [
-    color(252, 252, 78),
-    color(255, 164, 84),
-    color(158, 255, 84),
-    color(170, 240, 255),
-    color(255, 153, 153),
-    color(84, 132, 255),
-    color(155, 84, 255),
-    color(255, 117, 209)
-  ];
-    let userIdx = floor(random(this.colorArray.length));
-    this.col = this.colorArray[userIdx];
+    //   this.colorArray = [
+    //   // color(252, 252, 78)
+    //   // color(255, 164, 84),
+    //   // color(158, 255, 84),
+    //   // color(170, 240, 255),
+    //   // color(255, 153, 153),
+    //   //color(170, 240, 255)
+    //   // color(155, 84, 255),
+    //   // color(255, 117, 209)
+    // ];
+    // let userIdx = floor(random(this.colorArray.length));
+    // this.col = this.colorArray[userIdx];
+    this.col = col || color(220);
     this.lat = 0;
     this.lng = 0;
   }
-  
+
   updateLocation(lat, lng) {
     this.lat = lat;
     this.lng = lng;
@@ -585,7 +602,7 @@ class MyPoint {
     this.y = lerp(this.y, this.goalY, 0.2)
 
   }
-  
+
   display() {
     push();
     translate(this.x, this.y);
