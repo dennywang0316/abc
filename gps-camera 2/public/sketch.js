@@ -267,7 +267,7 @@ function draw() {
     others[id].display();
   }
   for (let id in othersTraces) {
-    drawAllTraces(othersTraces[id]);
+    drawAllTraces(othersTraces[id], color(220,traceTran));
   }
 }
 
