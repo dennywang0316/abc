@@ -5,6 +5,9 @@ let currentLongitude = 0; // global variables will be updated as we get GPS data
 let currentLatitude = 0; // global variables will be updated as we get GPS data
 let mapInit = false; // we only do map stuff once mapInit is true (see in draw)
 let me; // point object showing our own location
+const prefix = location.pathname.replace(/\/$/, '');      
+const socket = io({ path: prefix + '/socket.io' });
+
 if (location.hostname.toLowerCase().startsWith("browsercircus")) {
   socket = io({ path: "/YOURPATH-and-PORT/socket.io" }); // yields '/leon/port-4100/socket.io' or '/socket.io'
 } else {
