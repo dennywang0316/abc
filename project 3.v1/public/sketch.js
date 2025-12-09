@@ -110,7 +110,6 @@ let rewardLogEl,
 const audio = window.audio || {
   playLaunch: () => {},
   playBoom: () => {},
-  playCoin: () => {},
 };
 
 function setup() {
