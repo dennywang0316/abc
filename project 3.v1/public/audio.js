@@ -20,8 +20,6 @@
   function playBoom() {
     play("bombing.mp3", 0.3);
   }
-  function playCoin() {
-    play("coin.mp3", 0.4);
-  }
-  window.audio = { playLaunch, playBoom, playCoin };
+
+  window.audio = { playLaunch, playBoom};
 })();
