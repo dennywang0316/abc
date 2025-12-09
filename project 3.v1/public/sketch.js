@@ -9,7 +9,7 @@ let me; // point object showing our own location
 // const socket = io({ path: prefix + '/socket.io' });
 
 if (location.hostname.toLowerCase().startsWith("browsercircus")) {
-  socket = io({ path: "/YOURPATH-and-PORT/socket.io" }); // yields '/leon/port-4100/socket.io' or '/socket.io'
+  socket = io({ path: "/denny/port-4280/socket.io" }); // yields '/leon/port-4100/socket.io' or '/socket.io'
 } else {
   socket = io();
 }

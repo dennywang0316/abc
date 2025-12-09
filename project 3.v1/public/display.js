@@ -20,13 +20,22 @@ const PAUSE_SHORT = 2500; // rain -> river (no logo)
 const PAUSE_LONG = 5000; // river -> rain (with logo)
 const PATH_SAMPLES = 160;
 
+
+// start socket
+if(location.hostname.toLowerCase().startsWith('browsercircus') || location.hostname.toLowerCase().startsWith('www')){
+  socket = io({path: "/denny/port-4280/socket.io"});  // yields '/leon/port-4100/socket.io' or '/socket.io'
+}else{
+  socket = io(); 
+}
+
+
 function setup() {
   createCanvas(windowWidth, windowHeight);
   textFont("Georgia, serif");
   textAlign(CENTER, CENTER);
   textSize(26);
   background(0);
-  socket = io();
+  // socket = io();
   socket.on("notes", onNotes);
   lastSwitch = millis();
   logoImg = loadImage("assets/logo.png");
