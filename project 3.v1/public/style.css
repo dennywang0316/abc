@@ -161,14 +161,17 @@ body{
     color: #f7f7f7;
     z-index: 10004;
     display: flex;
-    align-items: center;
+    align-items: flex-start;
     justify-content: center;
-    padding: 30px;
+    padding: 24px 20px 32px;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
 }
 .context-content{
     max-width: 900px;
     width: 100%;
     line-height: 1.6;
+    padding-bottom: 24px;
 }
 .context-content h2{
     margin-top: 0;

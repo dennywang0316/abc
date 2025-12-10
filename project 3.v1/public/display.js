@@ -14,11 +14,13 @@ let drainStart = 0;
 let rainDraining = false;
 let rainDrainStart = 0;
 
-const RIVER_DURATION = 14000; // ms before start draining
-const RAIN_DURATION = 8000; // ms before switching to river
-const PAUSE_SHORT = 2500; // rain -> river (no logo)
-const PAUSE_LONG = 5000; // river -> rain (with logo)
+let riverDuration = 20000; // will be recomputed based on notes
+let rainDuration = 10000;  // will be recomputed based on notes
+const PAUSE_SHORT = 1200; // rain -> river (no logo)
+const PAUSE_LONG = 2000; // river -> rain (with logo starts quickly)
 const PATH_SAMPLES = 160;
+const MIN_RIVER_MS = 14000;
+const MIN_RAIN_MS = 8000;
 
 
 // start socket
@@ -52,6 +54,8 @@ function onNotes(list) {
   const texts = items.length > 0 ? items : ["memory", "river"];
   buildRiverPaths(texts);
   buildRainChars(texts);
+  riverDuration = computeRiverDuration();
+  rainDuration = computeRainDuration();
   lastSwitch = millis();
   draining = false;
   rainDraining = false;
@@ -138,11 +142,11 @@ function draw() {
   const now = millis();
 
   if (!inPause) {
-    if (mode === "river" && !draining && now - lastSwitch > RIVER_DURATION) {
+    if (mode === "river" && !draining && now - lastSwitch > riverDuration) {
       draining = true;
       drainStart = now;
     }
-    if (mode === "rain" && !rainDraining && now - lastSwitch > RAIN_DURATION) {
+    if (mode === "rain" && !rainDraining && now - lastSwitch > rainDuration) {
       rainDraining = true;
       rainDrainStart = now;
     }
@@ -181,11 +185,11 @@ function resetRainPositions() {
   });
 }
 
-function startPause(targetMode, showLogo, duration) {
+function startPause(targetMode, showLogo, duration, startOffset = 0) {
   inPause = true;
   nextMode = targetMode;
   pauseShowLogo = showLogo;
-  pauseStart = millis();
+  pauseStart = millis() - startOffset;
   pauseUntil = pauseStart + duration;
 }
 
@@ -264,7 +268,8 @@ function drawRiver(now) {
   });
 
   if (draining && allGone && !inPause) {
-    startPause("rain", true, PAUSE_LONG);
+    // start logo within ~1s of completion
+    startPause("rain", true, PAUSE_LONG, 1000);
   }
 }
 
@@ -308,4 +313,27 @@ function drawPause(now) {
     image(logoImg, 0, 0, logoImg.width * ratio, logoImg.height * ratio);
     pop();
   }
+}
+
+function computeRiverDuration() {
+  let maxMs = 0;
+  riverPaths.forEach((p) => {
+    const maxT = 1.05;
+    const minT = p.chars.length > 0 ? p.chars[0].t : 0;
+    const frames = (maxT - minT) / max(0.0001, p.speed);
+    const ms = (frames / 60) * 1000 + 1500;
+    if (ms > maxMs) maxMs = ms;
+  });
+  return max(maxMs, MIN_RIVER_MS);
+}
+
+function computeRainDuration() {
+  let maxMs = 0;
+  rainChars.forEach((c) => {
+    const travel = height * 1.6;
+    const frames = travel / max(0.1, c.vy);
+    const ms = (frames / 60) * 1000 + 800;
+    if (ms > maxMs) maxMs = ms;
+  });
+  return max(maxMs, MIN_RAIN_MS);
 }

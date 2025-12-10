@@ -130,6 +130,33 @@ function setup() {
   contextOverlayEl = document.getElementById("contextOverlay");
   reverseOverlayEl = document.getElementById("reverseOverlay");
   noteToolbarEl = document.getElementById("noteToolbar");
+  const warningBtn = document.getElementById("warningContinue");
+  if (warningBtn) {
+    ["click", "touchstart"].forEach((ev) => {
+      warningBtn.addEventListener(
+        ev,
+        (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          dismissWarning();
+        },
+        { passive: false }
+      );
+    });
+  }
+  if (fireButtonEl) {
+    ["click", "touchstart"].forEach((ev) => {
+      fireButtonEl.addEventListener(
+        ev,
+        (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          handleMainClick();
+        },
+        { passive: false }
+      );
+    });
+  }
   if (fireButtonEl) {
     fireButtonEl.style.display = "block";
     fireButtonEl.style.opacity = 1;
