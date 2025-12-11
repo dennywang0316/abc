@@ -36,5 +36,14 @@
     "text": "never forget",
     "city": "Beijing",
     "created": 1765219054006
+  },
+  {
+    "id": "1765388772485-2c0db0ac91558",
+    "lat": 48.69096039092552,
+    "lng": 43.59375000000001,
+    "text": "Peace",
+    "city": "",
+    "color": null,
+    "created": 1765388772485
   }
 ]

@@ -130,20 +130,49 @@ function setup() {
   contextOverlayEl = document.getElementById("contextOverlay");
   reverseOverlayEl = document.getElementById("reverseOverlay");
   noteToolbarEl = document.getElementById("noteToolbar");
+  const reverseYesBtn = document.getElementById("reverseYesBtn");
+  const reverseNoBtn = document.getElementById("reverseNoBtn");
+  const contextContinueBtn = document.getElementById("contextContinueBtn");
+  const contextLeaveBtn = document.getElementById("contextLeaveBtn");
   const warningBtn = document.getElementById("warningContinue");
-  if (warningBtn) {
+  const clearBtn = document.getElementById("clearButton");
+  const bindTap = (el, handler) => {
+    if (!el) return;
     ["click", "touchstart"].forEach((ev) => {
-      warningBtn.addEventListener(
+      el.addEventListener(
         ev,
         (e) => {
           e.preventDefault();
           e.stopPropagation();
-          dismissWarning();
+          handler();
         },
         { passive: false }
       );
     });
+  };
+  if (warningBtn) {
+    bindTap(warningBtn, dismissWarning);
   }
+  if (reverseYesBtn) {
+    bindTap(reverseYesBtn, reverseYes);
+  }
+  if (reverseNoBtn) {
+    bindTap(reverseNoBtn, reverseNo);
+  }
+  if (contextContinueBtn) {
+    bindTap(contextContinueBtn, continueFromContext);
+  }
+  if (contextLeaveBtn) {
+    bindTap(contextLeaveBtn, enterLeaveNoteMode);
+  }
+  // note toolbar buttons (mobile friendly)
+  const moveBtn = document.getElementById("moveModeBtn");
+  const noteBtn = document.getElementById("noteModeBtn");
+  const notesListBtn = document.getElementById("notesListBtn");
+  bindTap(moveBtn, () => setMode("move"));
+  bindTap(noteBtn, () => setMode("note"));
+  bindTap(notesListBtn, () => toggleNotesList());
+  bindTap(clearBtn, clearAllData);
   if (fireButtonEl) {
     ["click", "touchstart"].forEach((ev) => {
       fireButtonEl.addEventListener(
@@ -308,8 +337,12 @@ function drawMissile() {
   fill(255, 200, 80);
   circle(x, y, 16);
   pop();
-  if (missile.t >= 1) {
-    handleHit();
+  if (missile.t >= 1 || !missile.target) {
+    try {
+      handleHit();
+    } catch (err) {
+      console.log("handleHit error", err);
+    }
     missile = null;
   }
 }
@@ -423,6 +456,9 @@ function drawNewsClips() {
 // P5 touch events: https://p5js.org/reference/#Touch
 function touchStarted(e) {
   if (mapInit) {
+    if (contextOverlayEl && contextOverlayEl.style.display === "flex") {
+      return true; // allow scroll on overlays
+    }
     if (
       window.leaveNote &&
       window.leaveNote.isUIEvent &&
@@ -531,43 +567,45 @@ function fireMissile() {
 window.fireMissile = fireMissile;
 
 function handleHit() {
-  const patches = [];
-  for (let i = 0; i < 4; i++) {
-    patches.push({ dx: random(-1, 1), dy: random(-1, 1) });
+  if (!target) {
+    clickPhase = "select";
+    updateFireButtonState();
+    return;
   }
-  strikeMarks.push({
-    lat: target.lat,
-    lng: target.lng,
-    created: Date.now(),
-    patches,
-  });
-  // keep more history to make scars accumulate
-  if (strikeMarks.length > 120) {
-    strikeMarks.shift();
-  }
-  totalStrikes += 1;
-  const gained = 5;
-  points += gained;
-  audio.playBoom();
-  zoomInToTarget();
-  checkRewards();
-  saveLocalState();
-  updateUI();
-  if (socket) {
-    socket.emit("reportStrike", { pointsDelta: gained, target });
-  }
-  clickPhase = "select";
-  updateFireButtonState();
-  showInfoButtonIfReady();
-  spawnExplosion(target);
-  spawnNewsClip(target);
-  if (!contextShown && totalStrikes >= 4) {
-    hideReversePrompt();
-    showContextOverlay();
-  } else if (!contextShown) {
-    showReversePrompt();
-  }
-  if (target) {
+  try {
+    const patches = [];
+    for (let i = 0; i < 4; i++) {
+      patches.push({ dx: random(-1, 1), dy: random(-1, 1) });
+    }
+    strikeMarks.push({
+      lat: target.lat,
+      lng: target.lng,
+      created: Date.now(),
+      patches,
+    });
+    if (strikeMarks.length > 120) {
+      strikeMarks.shift();
+    }
+    totalStrikes += 1;
+    const gained = 5;
+    points += gained;
+    audio.playBoom();
+    zoomInToTarget();
+    checkRewards();
+    saveLocalState();
+    updateUI();
+    if (socket) {
+      socket.emit("reportStrike", { pointsDelta: gained, target });
+    }
+    showInfoButtonIfReady();
+    spawnExplosion(target);
+    spawnNewsClip(target);
+    if (!contextShown && totalStrikes >= 4) {
+      hideReversePrompt();
+      showContextOverlay();
+    } else if (!contextShown) {
+      showReversePrompt();
+    }
     hitHistory.push({
       label: target.label || "",
       lat: target.lat,
@@ -576,6 +614,11 @@ function handleHit() {
     if (hitHistory.length > 100) {
       hitHistory.shift();
     }
+  } catch (err) {
+    console.log("handleHit error", err);
+  } finally {
+    clickPhase = "select";
+    updateFireButtonState();
   }
 }
 
@@ -584,7 +627,7 @@ function checkRewards() {
     if (points >= r.points && unlockedRewards.indexOf(r.name) === -1) {
       unlockedRewards.push(r.name);
       spawnRewardDrop(r.name, r.file);
-      audio.playCoin();
+      // coin sound removed
     }
   });
 }
@@ -938,6 +981,8 @@ function setMode(mode) {
   if (mode === "note" && clickPhase !== "note-only") {
     enterLeaveNoteMode();
   }
+  toggleMapInteraction(mode === "move");
+  setCanvasPointerEvents(true);
 }
 window.setMode = setMode;
 
@@ -979,13 +1024,23 @@ function showContextOverlay() {
     contextOverlayEl.style.display = "flex";
     contextShown = true;
     if (noteToolbarEl) noteToolbarEl.style.display = "none";
+    const canvasWrap = document.getElementById("p5-canvas-container");
+    if (canvasWrap) canvasWrap.style.pointerEvents = "none";
+    document.body.style.overflowY = "auto";
   }
   hideReversePrompt();
+  toggleMapInteraction(false);
+  setCanvasPointerEvents(true);
 }
 
 function continueFromContext() {
   if (contextOverlayEl) contextOverlayEl.style.display = "none";
   if (noteToolbarEl) noteToolbarEl.style.display = "none";
+  const canvasWrap = document.getElementById("p5-canvas-container");
+  if (canvasWrap) canvasWrap.style.pointerEvents = "auto";
+  document.body.style.overflowY = "hidden";
+  toggleMapInteraction(true);
+  setCanvasPointerEvents(true);
 }
 window.continueFromContext = continueFromContext;
 
@@ -1027,6 +1082,8 @@ function enterLeaveNoteMode() {
   if (myMap && myMap.map) {
     myMap.map.setView([20, 0], 2);
   }
+  toggleMapInteraction(false);
+  setCanvasPointerEvents(true);
 }
 window.enterLeaveNoteMode = enterLeaveNoteMode;
 
@@ -1104,3 +1161,27 @@ socket.on("notes", function (serverNotes) {
     window.leaveNote.onNotes(serverNotes || []);
   }
 });
+
+function toggleMapInteraction(enable) {
+  if (myMap && myMap.map) {
+    if (enable) {
+      myMap.map.dragging.enable();
+      myMap.map.touchZoom.enable();
+      myMap.map.doubleClickZoom.enable();
+      myMap.map.boxZoom.enable();
+      myMap.map.keyboard.enable();
+    } else {
+      myMap.map.dragging.disable();
+      myMap.map.touchZoom.disable();
+      myMap.map.doubleClickZoom.disable();
+      myMap.map.boxZoom.disable();
+      myMap.map.keyboard.disable();
+    }
+  }
+}
+
+function setCanvasPointerEvents(enable) {
+  if (canvas && canvas.elt) {
+    canvas.elt.style.pointerEvents = enable ? "auto" : "none";
+  }
+}

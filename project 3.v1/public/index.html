@@ -62,8 +62,8 @@
       <h3>Do you want to reverse this?</h3>
       <p>You can choose to obey the "click" order, or choose to not follow it, no matter what that might takes.</p>
       <div class="panel-actions">
-        <button class="secondary" onclick="reverseNo()">No</button>
-        <button class="primary" onclick="reverseYes()">Yes</button>
+        <button id="reverseNoBtn" class="secondary" onclick="reverseNo()">No</button>
+        <button id="reverseYesBtn" class="primary" onclick="reverseYes()">Yes</button>
       </div>
     </div>
   </div>
@@ -79,8 +79,8 @@
         Take your time to leave a note, and watch it drift into the running tide of memory.<p>
       </p>
       <div class="context-actions">
-        <button onclick="continueFromContext()" class="secondary">Continue</button>
-        <button onclick="enterLeaveNoteMode()" class="primary">Leave a note</button>
+        <button id="contextContinueBtn" onclick="continueFromContext()" class="secondary">Continue</button>
+        <button id="contextLeaveBtn" onclick="enterLeaveNoteMode()" class="primary">Leave a note</button>
       </div>
     </div>
   </div>
