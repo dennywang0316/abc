@@ -52,6 +52,7 @@ let warningDismissed = false;
 let contextShown = false;
 let noteToolbarEl;
 let leaveNoteReady = false;
+let noteModeActive = false;
 
 function shuffleTargets() {
   for (let i = historicalTargets.length - 1; i > 0; i--) {
@@ -80,17 +81,17 @@ const rewardLadder = [
 ];
 
 const historicalTargets = [
-  { lat: 43.3127, lng: -2.676, label: "Guernica, Spanish Civil War, 1937" },
-  { lat: 51.5074, lng: -0.1278, label: "London Blitz, 1940" },
-  { lat: 51.0504, lng: 13.7373, label: "Dresden bombing, 1945" },
-  { lat: 34.3853, lng: 132.4553, label: "Hiroshima, 1945" },
-  { lat: 32.7503, lng: 129.8777, label: "Nagasaki, 1945" },
-  { lat: 11.5564, lng: 104.9282, label: "Cambodia (Operation Menu), 1973" },
-  { lat: 21.0278, lng: 105.8342, label: "Hanoi Christmas bombing, 1972" },
-  { lat: 43.8563, lng: 18.4131, label: "Sarajevo shelling, 1994" },
-  { lat: 43.3178, lng: 45.6983, label: "Grozny bombing, 1999" },
-  { lat: 44.7866, lng: 20.4489, label: "Belgrade bombing, 1999" },
-  { lat: 33.3152, lng: 44.3661, label: "Baghdad shock and awe, 2003" },
+  { lat: 43.3127, lng: -2.676, label: "Guernica, Spain, 1937 (Spanish Civil War)", country: "Spain", war: "1937 Spanish Civil War" },
+  { lat: 51.5074, lng: -0.1278, label: "London, UK, 1940 (The Blitz)", country: "UK", war: "1940 London Blitz" },
+  { lat: 51.0504, lng: 13.7373, label: "Dresden, Germany, 1945 (WWII bombing)", country: "Germany", war: "1945 Dresden bombing" },
+  { lat: 34.3853, lng: 132.4553, label: "Hiroshima, Japan, 1945", country: "Japan", war: "1945 Hiroshima bombing" },
+  { lat: 32.7503, lng: 129.8777, label: "Nagasaki, Japan, 1945", country: "Japan", war: "1945 Nagasaki bombing" },
+  { lat: 11.5564, lng: 104.9282, label: "Phnom Penh, Cambodia, 1973 (Operation Menu)", country: "Cambodia", war: "1973 Operation Menu" },
+  { lat: 21.0278, lng: 105.8342, label: "Hanoi, Vietnam, 1972 (Christmas bombing)", country: "Vietnam", war: "1972 Hanoi Christmas bombing" },
+  { lat: 43.8563, lng: 18.4131, label: "Sarajevo, Bosnia, 1994 (Markale Market Massacre )", country: "Bosnia", war: "1994 Sarajevo shelling" },
+  { lat: 43.3178, lng: 45.6983, label: "Grozny, Chechnya, 1999 (Second Chechen War)", country: "Chechnya", war: "1999 Grozny bombing" },
+  { lat: 44.7866, lng: 20.4489, label: "Belgrade, Serbia, 1999 (NATO bombing)", country: "Serbia", war: "1999 Belgrade bombing" },
+  { lat: 33.3152, lng: 44.3661, label: "Baghdad, Iraq, 2003 (2003 Iraq War)", country: "Iraq", war: "2003 Iraq War" },
 ];
 
 let rewardLogEl,
@@ -254,6 +255,7 @@ function draw() {
     drawExplosionParticles();
     drawNewsClips();
     if (window.leaveNote) window.leaveNote.drawNotes(myMap);
+    if (noteModeActive) drawWarMarkers();
     pop();
   } else {
     push();
@@ -466,16 +468,26 @@ function touchStarted(e) {
     ) {
       return false;
     }
-    if (
-      window.leaveNote &&
-      window.leaveNote.handleTouch &&
-      window.leaveNote.handleTouch(e)
-    ) {
-      return false;
-    }
     const tx = touches && touches.length > 0 ? touches[0].x : mouseX;
     const ty = touches && touches.length > 0 ? touches[0].y : mouseY;
-    let pos = myMap.pixelToLatLng(tx, ty);
+    const pos = myMap.pixelToLatLng(tx, ty);
+    if (noteModeActive) {
+      const hit = findHistoricalTargetHit(tx, ty);
+      if (hit && window.leaveNote && window.leaveNote.openNoteOverlay) {
+        window.leaveNote.openNoteOverlay(hit.lat, hit.lng, {
+          war: hit.war || hit.label || "this war",
+          city: hit.country || "",
+        });
+        return false;
+      }
+      if (
+        window.leaveNote &&
+        window.leaveNote.handleTouch &&
+        window.leaveNote.handleTouch(e)
+      ) {
+        return false;
+      }
+    }
     console.log("TOUCHED", pos);
   } else {
     console.log("TOUCHED", touches);
@@ -948,30 +960,30 @@ function startMotionListeners() {
 function populateInfoList() {
   if (!infoListEl) return;
   infoListEl.innerHTML = "";
-  hitHistory.forEach((t) => {
+  historicalTargets.forEach((t) => {
     const div = document.createElement("div");
     div.style.marginBottom = "10px";
     const coords = `${t.lat.toFixed(4)}, ${t.lng.toFixed(4)}`;
-    if (t.label && t.label.length > 0) {
-      div.innerHTML = `<strong>${t.label}</strong> (${coords})`;
-    } else {
-      div.textContent = coords;
-    }
+    const label = t.label || "target";
+    div.innerHTML = `<strong>${label}</strong> (${coords})`;
     infoListEl.appendChild(div);
   });
 }
 
 function toggleInfo() {
   if (!infoOverlayEl) return;
-  infoOverlayEl.style.display = "none";
+  if (infoOverlayEl.style.display === "none" || infoOverlayEl.style.display === "") {
+    populateInfoList();
+    infoOverlayEl.style.display = "flex";
+  } else {
+    infoOverlayEl.style.display = "none";
+  }
 }
 window.toggleInfo = toggleInfo;
 
 function showInfoButtonIfReady() {
   if (!infoButtonEl) return;
-  if (totalStrikes >= 5) {
-    infoButtonEl.style.display = "block";
-  }
+  infoButtonEl.style.display = "block";
 }
 
 function setMode(mode) {
@@ -1076,6 +1088,7 @@ function enterLeaveNoteMode() {
     myMap.map.setView([20, 0], 2);
   }
   toggleMapInteraction(false);
+  noteModeActive = true;
 }
 window.enterLeaveNoteMode = enterLeaveNoteMode;
 
@@ -1135,7 +1148,12 @@ class MyPoint {
     strokeWeight(3);
     let dia = this.size + sin(frameCount * 0.1);
     circle(0, 0, dia);
-
+    // the "you" label 
+    noStroke();
+    fill(0);
+    textAlign(CENTER, BOTTOM);
+    textSize(14);
+    text("You", 0, -this.size * 1.2);
     pop();
   }
 }
@@ -1170,4 +1188,34 @@ function toggleMapInteraction(enable) {
       myMap.map.keyboard.disable();
     }
   }
+}
+function drawWarMarkers() {
+  if (!myMap) return;
+  push();
+  historicalTargets.forEach((t) => {
+    const pos = myMap.latLngToPixel(t.lat, t.lng);
+    noStroke();
+    fill(255, 80, 80, 230);
+    circle(pos.x, pos.y, 14);
+    stroke(0, 140);
+    strokeWeight(1);
+    noFill();
+    circle(pos.x, pos.y, 18);
+  });
+  pop();
+}
+
+function findHistoricalTargetHit(px, py) {
+  if (!myMap) return null;
+  let closest = null;
+  let minDist = 18;
+  historicalTargets.forEach((t) => {
+    const pos = myMap.latLngToPixel(t.lat, t.lng);
+    const d = dist(px, py, pos.x, pos.y);
+    if (d < minDist) {
+      minDist = d;
+      closest = t;
+    }
+  });
+  return closest;
 }

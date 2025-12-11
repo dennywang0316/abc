@@ -71,10 +71,10 @@
     <div class="context-content">
       <h2>Why this experience?</h2>
       <p>
-        This project uses a seemingly mindless tapping game to question how easily individual thinking is absorbed into national narratives and instructions. <p>
+        This project uses a seemingly mindless tapping experience to question how easily individual thinking is absorbed into national narratives and instructions. <p>
         As players trigger bombs to gain points, badges, or rewards, each blast is mapped to a real bombing site happened in the history, accompanied by archival newspapers, images, and sound. 
         I want the friction between seemingly-simple interaction of 'clicking' and these traces of destruction to ask whether war ever truly serves the interests of ordinary people, or mainly brings loss of homes, lives, and futures. 
-        Different conflicts may claim different “just” causes, but this work is dedicated to the innocent civilians killed in all of them, and thus we invite you to leave your memory note. <p>
+        Different conflicts may claim different “justification” causes, but this work is dedicated to the innocent civilians killed in all of them, and thus we invite you to leave your memory note. <p>
         What does war mean to you? How has war been told to you? What would you like to leave here about war? <p>
         Take your time to leave a note, and watch it drift into the running tide of memory.<p>
       </p>
@@ -84,7 +84,15 @@
       </div>
     </div>
   </div>
-  <div id="infoOverlay" style="display:none;"></div>
+  <div id="infoOverlay" class="full-overlay" style="display:none;">
+    <div class="panel">
+      <div style="text-align:right;">
+        <a href="javascript:void(0)" onclick="toggleInfo()">close</a>
+      </div>
+      <h3>Historical bombings</h3>
+      <div id="infoList"></div>
+    </div>
+  </div>
 
   <div id="noteToolbar" style="display:none;">
     <button id="moveModeBtn" onclick="setMode('move')">Move</button>
@@ -95,7 +103,7 @@
   <div id="noteOverlay" style="display:none;">
       <div id="notePaper">
         <div id="noteClose" onclick="closeNoteOverlay()">×</div>
-        <h3>Leave a note</h3>
+        <h3 id="noteTitle">Leave a note</h3>
         <div class="note-meta">Location: <span id="noteLocationLabel">-</span></div>
         <input id="noteCity" placeholder="City / Country (optional)" /></span>
         </span><textarea id="noteText" placeholder="Write your memory or thoughts here..."></textarea></span>

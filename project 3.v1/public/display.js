@@ -16,8 +16,8 @@ let rainDrainStart = 0;
 
 let riverDuration = 20000; // will be recomputed based on notes
 let rainDuration = 10000;  // will be recomputed based on notes
-const PAUSE_SHORT = 1200; // rain -> river (no logo)
-const PAUSE_LONG = 2000; // river -> rain (with logo starts quickly)
+const PAUSE_SHORT = 800;  // rain -> river (no logo)
+const PAUSE_LONG = 6000; // river -> rain (logo fades ~6s)
 const PATH_SAMPLES = 160;
 const MIN_RIVER_MS = 14000;
 const MIN_RAIN_MS = 8000;
@@ -157,6 +157,7 @@ function draw() {
     if (now >= pauseUntil) {
       inPause = false;
       mode = nextMode || (mode === "river" ? "rain" : "river");
+      nextMode = null;
       lastSwitch = now;
       if (mode === "river") {
         draining = false;
@@ -188,6 +189,8 @@ function resetRainPositions() {
 function startPause(targetMode, showLogo, duration, startOffset = 0) {
   inPause = true;
   nextMode = targetMode;
+  draining = false;
+  rainDraining = false;
   pauseShowLogo = showLogo;
   pauseStart = millis() - startOffset;
   pauseUntil = pauseStart + duration;
@@ -268,8 +271,8 @@ function drawRiver(now) {
   });
 
   if (draining && allGone && !inPause) {
-    // start logo within ~1s of completion
-    startPause("rain", true, PAUSE_LONG, 1000);
+    // start logo immediately after river ends
+    startPause("rain", true, PAUSE_LONG, 0);
   }
 }
 
@@ -295,7 +298,7 @@ function drawRain(now) {
   });
   if (rainDraining && allGone && !inPause) {
     rainDraining = false;
-    startPause("river", false, PAUSE_SHORT);
+    startPause("river", false, PAUSE_SHORT, 0);
   }
 }
 

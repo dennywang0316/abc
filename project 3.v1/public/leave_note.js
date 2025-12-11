@@ -13,7 +13,7 @@
   };
 
   let noteToolbarEl, notesListOverlayEl, notesListEl;
-  let noteOverlayEl, noteLocationLabelEl, noteTextEl, noteCityEl;
+  let noteOverlayEl, noteLocationLabelEl, noteTextEl, noteCityEl, noteTitleEl;
   let notePaperEl, notesListContentEl;
 
   function init(opts) {
@@ -27,6 +27,7 @@
     noteOverlayEl = document.getElementById("noteOverlay");
     notePaperEl = document.getElementById("notePaper");
     notesListContentEl = document.getElementById("notesListContent");
+    noteTitleEl = document.getElementById("noteTitle");
     noteLocationLabelEl = document.getElementById("noteLocationLabel");
     noteTextEl = document.getElementById("noteText");
     noteCityEl = document.getElementById("noteCity");
@@ -107,12 +108,13 @@
     return true;
   }
 
-  function openNoteOverlay(lat, lng) {
+  function openNoteOverlay(lat, lng, opts = {}) {
     state.pendingPos = { lat, lng };
     if (noteLocationLabelEl)
       noteLocationLabelEl.textContent = `${lat.toFixed(4)}, ${lng.toFixed(4)}`;
     if (noteTextEl) noteTextEl.value = "";
-    if (noteCityEl) noteCityEl.value = "";
+    if (noteCityEl) noteCityEl.value = opts.city || "";
+    if (noteTitleEl) noteTitleEl.textContent = opts.war ? `Leave a note for ${opts.war}` : "Leave a note";
     if (noteOverlayEl) noteOverlayEl.style.display = "flex";
   }
 
