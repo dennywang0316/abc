@@ -982,7 +982,6 @@ function setMode(mode) {
     enterLeaveNoteMode();
   }
   toggleMapInteraction(mode === "move");
-  setCanvasPointerEvents(true);
 }
 window.setMode = setMode;
 
@@ -1024,23 +1023,17 @@ function showContextOverlay() {
     contextOverlayEl.style.display = "flex";
     contextShown = true;
     if (noteToolbarEl) noteToolbarEl.style.display = "none";
-    const canvasWrap = document.getElementById("p5-canvas-container");
-    if (canvasWrap) canvasWrap.style.pointerEvents = "none";
     document.body.style.overflowY = "auto";
   }
   hideReversePrompt();
   toggleMapInteraction(false);
-  setCanvasPointerEvents(true);
 }
 
 function continueFromContext() {
   if (contextOverlayEl) contextOverlayEl.style.display = "none";
   if (noteToolbarEl) noteToolbarEl.style.display = "none";
-  const canvasWrap = document.getElementById("p5-canvas-container");
-  if (canvasWrap) canvasWrap.style.pointerEvents = "auto";
   document.body.style.overflowY = "hidden";
   toggleMapInteraction(true);
-  setCanvasPointerEvents(true);
 }
 window.continueFromContext = continueFromContext;
 
@@ -1083,7 +1076,6 @@ function enterLeaveNoteMode() {
     myMap.map.setView([20, 0], 2);
   }
   toggleMapInteraction(false);
-  setCanvasPointerEvents(true);
 }
 window.enterLeaveNoteMode = enterLeaveNoteMode;
 
@@ -1177,11 +1169,5 @@ function toggleMapInteraction(enable) {
       myMap.map.boxZoom.disable();
       myMap.map.keyboard.disable();
     }
-  }
-}
-
-function setCanvasPointerEvents(enable) {
-  if (canvas && canvas.elt) {
-    canvas.elt.style.pointerEvents = enable ? "auto" : "none";
   }
 }
