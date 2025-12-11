@@ -45,5 +45,14 @@
     "city": "",
     "color": null,
     "created": 1765388772485
+  },
+  {
+    "id": "1765431492238-18186e4b5e88f",
+    "lat": 48.1367666796927,
+    "lng": 11.55487060546875,
+    "text": "I’m so sorry",
+    "city": "Just following orders",
+    "color": null,
+    "created": 1765431492238
   }
 ]
